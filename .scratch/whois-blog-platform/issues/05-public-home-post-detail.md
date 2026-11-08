@@ -4,20 +4,24 @@
 
 **Blocked by:** 04 (Post editor + draft/publish workflow)
 
-**Status:** ready-for-agent
+**Status:** closed
 
-- [ ] Public layout with header navigation (Home, category links, Search, Archive, About), light/dark mode toggle via next-themes, responsive hamburger menu on mobile
-- [ ] Home page at / showing published posts: pinned posts first, then by publishedAt descending, with offset pagination
-- [ ] Post card component showing title, excerpt, cover image, category badge, published date, reading time
-- [ ] Post detail page at /post/[slug] rendering full HTML content with typography styles (prose classes)
-- [ ] Table of contents component: parses rendered HTML headings (h2, h3), generates anchor links, highlights current section on scroll
-- [ ] Related posts section at bottom of post detail: up to 3 posts from same category, excluding current, ordered by recency
-- [ ] Author byline on post detail (name, avatar from admin profile)
-- [ ] SEO: dynamic meta tags (title, description) and Open Graph tags (og:title, og:description, og:image) on post detail pages using Next.js metadata API
-- [ ] View count: increment Post.viewCount on each detail page load
-- [ ] Draft and future-scheduled posts are NOT visible on any public page
-- [ ] Clean, minimal, Medium-inspired typography: serif body font, generous whitespace, readable line length
-- [ ] Responsive layout: mobile-first, works well on phone, tablet, and desktop
-- [ ] API test: GET published posts → returns only PUBLISHED posts (not drafts or future-scheduled)
-- [ ] API test: GET post by slug → returns full post data with related posts
-- [ ] API test: GET non-existent slug → returns 404
+- [x] Public layout with header navigation (Home, category links, Search, Archive, About), light/dark mode toggle via next-themes, responsive hamburger menu on mobile
+- [x] Home page at / showing published posts: pinned posts first, then by publishedAt descending, with offset pagination
+- [x] Post card component showing title, excerpt, cover image, category badge, published date, reading time
+- [x] Post detail page at /post/[slug] rendering full HTML content with typography styles (prose classes)
+- [x] Table of contents component: parses rendered HTML headings (h2, h3), generates anchor links, highlights current section on scroll
+- [x] Related posts section at bottom of post detail: up to 3 posts from same category, excluding current, ordered by recency
+- [x] Author byline on post detail (name, avatar from admin profile)
+- [x] SEO: dynamic meta tags (title, description) and Open Graph tags (og:title, og:description, og:image) on post detail pages using Next.js metadata API
+- [x] View count: increment Post.viewCount on each detail page load
+- [x] Draft and future-scheduled posts are NOT visible on any public page
+- [x] Clean, minimal, Medium-inspired typography: serif body font, generous whitespace, readable line length
+- [x] Responsive layout: mobile-first, works well on phone, tablet, and desktop
+- [x] API test: GET published posts -> returns only PUBLISHED posts (not drafts or future-scheduled)
+- [x] API test: GET post by slug -> returns full post data with related posts
+- [x] API test: GET non-existent slug -> returns 404
+
+## Comments
+
+Completed in feat/05-public-home-post-detail and merged to integration/whois-blog-platform.
