@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TiptapEditor } from "@/components/editor/tiptap-editor";
-import { Upload, ArrowLeft, Pin } from "lucide-react";
+import { Upload, ArrowLeft, Pin, Globe, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 
 interface Category {
@@ -24,6 +24,9 @@ interface PostData {
   categoryId?: string;
   isPinned?: boolean;
   scheduledAt?: string | Date;
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
 }
 
 export function PostForm({ initialData }: { initialData?: PostData }) {
@@ -43,11 +46,20 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
       : ""
   );
 
+  // SEO fields
+  const [metaTitle, setMetaTitle] = React.useState(initialData?.metaTitle || "");
+  const [metaDescription, setMetaDescription] = React.useState(initialData?.metaDescription || "");
+  const [ogImage, setOgImage] = React.useState(initialData?.ogImage || "");
+  const [showSeo, setShowSeo] = React.useState(
+    Boolean(initialData?.metaTitle || initialData?.metaDescription || initialData?.ogImage)
+  );
+
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const ogFileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     fetch("/api/categories")
@@ -60,56 +72,87 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
+    try {
       const res = await fetch("/api/media", {
         method: "POST",
         body: formData,
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setCoverImage(data.url);
-      } else {
-        alert("Failed to upload cover image");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to upload image");
       }
-    } catch (err) {
-      alert("Error uploading cover image");
+
+      const media = await res.json();
+      setCoverImage(media.url);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload cover image");
     }
   }
 
-  async function handleSubmit(statusToSet: "DRAFT" | "PUBLISHED" | "SCHEDULED") {
+  async function handleOgImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/media", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to upload image");
+      }
+
+      const media = await res.json();
+      setOgImage(media.url);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload Open Graph image");
+    }
+  }
+
+  async function handleSubmit(actionStatus?: string) {
+    setError(null);
     if (!title.trim()) {
-      setError("Please provide a title");
+      setError("Title is required");
       return;
     }
 
+    const statusToSet = actionStatus || status;
+
     if (statusToSet === "SCHEDULED") {
       if (!scheduledAt) {
-        setError("Please choose a future date/time for scheduled publishing");
+        setError("Please choose a date and time for scheduled publication");
         return;
       }
-      const schedDate = new Date(scheduledAt);
-      if (isNaN(schedDate.getTime()) || schedDate.getTime() <= Date.now()) {
+      const scheduledDate = new Date(scheduledAt);
+      if (isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
         setError("Scheduled date must be in the future");
         return;
       }
     }
 
     setIsSubmitting(true);
-    setError(null);
 
     const payload = {
-      title: title.trim(),
+      title,
       content,
-      excerpt: excerpt.trim() || undefined,
-      coverImage: coverImage.trim() || undefined,
-      categoryId: categoryId || undefined,
+      excerpt,
+      coverImage,
+      categoryId: categoryId || null,
       isPinned,
       status: statusToSet,
       scheduledAt: statusToSet === "SCHEDULED" ? new Date(scheduledAt).toISOString() : undefined,
+      metaTitle: metaTitle.trim() || undefined,
+      metaDescription: metaDescription.trim() || undefined,
+      ogImage: ogImage.trim() || undefined,
     };
 
     try {
@@ -161,7 +204,7 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
               disabled={isSubmitting}
               onClick={() => handleSubmit("SCHEDULED")}
             >
-              Save Schedule
+              {isSubmitting ? "Scheduling..." : "Schedule Post"}
             </Button>
           ) : (
             <Button
@@ -169,7 +212,7 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
               disabled={isSubmitting}
               onClick={() => handleSubmit("PUBLISHED")}
             >
-              {isEditing ? "Save & Publish" : "Publish Now"}
+              {isSubmitting ? "Publishing..." : isEditing ? "Update & Publish" : "Publish Now"}
             </Button>
           )}
         </div>
@@ -178,25 +221,26 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
       {error && (
         <div
           role="alert"
-          className="rounded-md bg-destructive/15 p-4 text-sm text-destructive"
+          className="rounded-md bg-destructive/15 p-3 text-sm text-destructive"
         >
           {error}
         </div>
       )}
 
-      {/* Main post fields */}
-      <div className="space-y-4">
-        <div>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="title">Title</Label>
           <Input
+            id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Post title..."
-            className="text-2xl font-bold py-6 px-4"
+            placeholder="Post title"
+            className="text-lg font-medium"
             required
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <select
@@ -306,6 +350,84 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
             onChange={(e) => setExcerpt(e.target.value)}
             placeholder="Short summary of the post (optional)"
           />
+        </div>
+
+        {/* Collapsible SEO Settings Section */}
+        <div className="rounded-lg border bg-card p-4 space-y-4">
+          <button
+            type="button"
+            onClick={() => setShowSeo(!showSeo)}
+            className="flex w-full items-center justify-between text-sm font-semibold hover:text-primary transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-primary" />
+              SEO Settings (Meta Title, Description, Open Graph)
+            </span>
+            {showSeo ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+
+          {showSeo && (
+            <div className="pt-3 border-t space-y-4 animate-in fade-in">
+              <div className="space-y-1">
+                <Label htmlFor="metaTitle">Custom Meta Title</Label>
+                <Input
+                  id="metaTitle"
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
+                  placeholder="Defaults to post title if blank"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Overrides standard page title for search engines. Recommended under 60 characters.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="metaDescription">Custom Meta Description</Label>
+                <textarea
+                  id="metaDescription"
+                  rows={3}
+                  value={metaDescription}
+                  onChange={(e) => setMetaDescription(e.target.value)}
+                  placeholder="Defaults to post excerpt if blank"
+                  className="w-full rounded-md border border-input bg-background p-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Brief description snippet for Google search results and link previews.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="ogImage">Custom Open Graph Image URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="ogImage"
+                    value={ogImage}
+                    onChange={(e) => setOgImage(e.target.value)}
+                    placeholder="Defaults to cover image if blank"
+                  />
+                  <input
+                    type="file"
+                    ref={ogFileInputRef}
+                    onChange={handleOgImageUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => ogFileInputRef.current?.click()}
+                    title="Upload Open Graph image"
+                  >
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Image used for Twitter/X cards and Facebook/LinkedIn social shares.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
