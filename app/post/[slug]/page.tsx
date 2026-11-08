@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       title,
       description,
       type: "article",
+      url: `/post/${post.slug}`,
       publishedTime: post.publishedAt?.toISOString(),
       images: image ? [{ url: image }] : undefined,
     },
