@@ -4,20 +4,20 @@
 
 **Blocked by:** 04 (Post editor + draft/publish), 08 (Guest OAuth + commenting)
 
-**Status:** ready-for-agent
+**Status:** closed
 
-- [ ] Prisma schema update: add bio field to User model (if not already present)
-- [ ] Migration generated and applied
-- [ ] Dashboard page at /admin (the index page) with stats cards: total published posts, total approved comments, total views
-- [ ] Stats fetched via aggregation queries (Prisma count/sum)
-- [ ] Profile settings page at /admin/settings with form fields: display name, bio (textarea), avatar (image upload via media library)
-- [ ] Password change form: current password, new password, confirm new password, with server-side bcrypt verification of current password
-- [ ] API route: PUT /api/admin/profile (update name, bio, avatar)
-- [ ] API route: PUT /api/admin/password (change password with current password verification)
-- [ ] Public about page at /about showing admin's name, bio, avatar, and any links, styled with the public layout
-- [ ] About page data fetched from the User record with role = ADMIN
-- [ ] API test: get dashboard stats → returns correct counts for posts, comments, views
-- [ ] API test: update profile → verify name, bio, avatar persisted
-- [ ] API test: change password with correct current password → success
-- [ ] API test: change password with wrong current password → rejected
-- [ ] API test: unauthenticated/guest access to profile/password endpoints → rejected
+- [x] Prisma schema update: add bio field to User model (if not already present)
+- [x] Migration generated and applied
+- [x] Dashboard page at /admin (the index page) with stats cards: total published posts, total approved comments, total views
+- [x] Stats fetched via aggregation queries (Prisma count/sum)
+- [x] Profile settings page at /admin/settings with form fields: display name, bio (textarea), avatar (image upload via media library)
+- [x] Password change form: current password, new password, confirm new password, with server-side bcrypt verification of current password
+- [x] API route: PUT /api/admin/profile (update name, bio, avatar)
+- [x] API route: PUT /api/admin/password (change password with current password verification)
+- [x] Public about page at /about showing admin's name, bio, avatar, and any links, styled with the public layout
+- [x] About page data fetched from the User record with role = ADMIN
+- [x] API test: get dashboard stats → returns correct counts for posts, comments, views
+- [x] API test: update profile → verify name, bio, avatar persisted
+- [x] API test: change password with correct current password → success
+- [x] API test: change password with wrong current password → rejected
+- [x] API test: unauthenticated/guest access to profile/password endpoints → rejected
