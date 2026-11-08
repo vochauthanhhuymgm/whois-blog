@@ -4,20 +4,24 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** closed
 
-- [ ] Next.js 14+ project created with App Router, TypeScript, Tailwind CSS, pnpm
-- [ ] shadcn/ui initialized with base components (Button, Input, Card, etc.)
-- [ ] Prisma schema with User model, role enum (ADMIN | GUEST), and NextAuth models (Account, Session, VerificationToken)
-- [ ] SQLite database configured, initial migration generated
-- [ ] Seed script creates admin user from ADMIN_EMAIL / ADMIN_PASSWORD env vars (bcrypt hashed)
-- [ ] NextAuth.js configured with credentials provider (email + password, validates against User table)
-- [ ] Admin login page at /auth/signin with email/password form
-- [ ] Protected /admin route group with shared layout (sidebar nav with placeholder links for Posts, Categories, Comments, Media, Settings, Dashboard)
-- [ ] Middleware redirects unauthenticated users from /admin/* to /auth/signin
-- [ ] Middleware redirects non-ADMIN users from /admin/* to home page
-- [ ] Vitest configured with a test that verifies the Prisma client can connect and the seed script creates the admin user
-- [ ] API test: POST to NextAuth sign-in endpoint succeeds with correct admin credentials
-- [ ] API test: POST to NextAuth sign-in endpoint fails with wrong credentials
-- [ ] .env.example file with all required environment variables documented
-- [ ] next-themes configured with light/dark mode toggle in the admin layout
+- [x] Next.js 14+ project created with App Router, TypeScript, Tailwind CSS, pnpm
+- [x] shadcn/ui initialized with base components (Button, Input, Card, etc.)
+- [x] Prisma schema with User model, role enum (ADMIN | GUEST), and NextAuth models (Account, Session, VerificationToken)
+- [x] SQLite database configured, initial migration generated
+- [x] Seed script creates admin user from ADMIN_EMAIL / ADMIN_PASSWORD env vars (bcrypt hashed)
+- [x] NextAuth.js configured with credentials provider (email + password, validates against User table)
+- [x] Admin login page at /auth/signin with email/password form
+- [x] Protected /admin route group with shared layout (sidebar nav with placeholder links for Posts, Categories, Comments, Media, Settings, Dashboard)
+- [x] Middleware redirects unauthenticated users from /admin/* to /auth/signin
+- [x] Middleware redirects non-ADMIN users from /admin/* to home page
+- [x] Vitest configured with a test that verifies the Prisma client can connect and the seed script creates the admin user
+- [x] API test: POST to NextAuth sign-in endpoint succeeds with correct admin credentials
+- [x] API test: POST to NextAuth sign-in endpoint fails with wrong credentials
+- [x] .env.example file with all required environment variables documented
+- [x] next-themes configured with light/dark mode toggle in the admin layout
+
+## Comments
+
+Completed in feat/01-project-bootstrap and merged to integration/whois-blog-platform.
