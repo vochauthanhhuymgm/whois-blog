@@ -25,6 +25,7 @@ model User {
   accounts Account[]
   sessions Session[]
   posts    Post[]
+  media    Media[]
 }
 
 model Account {
@@ -76,25 +77,37 @@ model Category {
 }
 
 model Post {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  excerpt     String?
-  content     String    @default("")
-  coverImage  String?
-  status      String    @default("DRAFT") // DRAFT | SCHEDULED | PUBLISHED
-  isPinned    Boolean   @default(false)
-  scheduledAt DateTime?
-  publishedAt DateTime?
-  metaTitle   String?
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  excerpt         String?
+  content         String    @default("")
+  coverImage      String?
+  status          String    @default("DRAFT") // DRAFT | SCHEDULED | PUBLISHED
+  isPinned        Boolean   @default(false)
+  scheduledAt     DateTime?
+  publishedAt     DateTime?
+  metaTitle       String?
   metaDescription String?
-  ogImage     String?
-  viewCount   Int       @default(0)
-  readingTime Int       @default(1)
-  authorId    String?
-  author      User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  categoryId  String?
-  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  ogImage         String?
+  viewCount       Int       @default(0)
+  readingTime     Int       @default(1)
+  authorId        String?
+  author          User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  fileName     String
+  key          String   @unique
+  url          String
+  mimeType     String
+  size         Int
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
 }
