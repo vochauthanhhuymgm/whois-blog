@@ -4,17 +4,21 @@
 
 **Blocked by:** 04 (Post editor + draft/publish workflow)
 
-**Status:** ready-for-agent
+**Status:** closed
 
-- [ ] Post editor gains a date/time picker when status is set to SCHEDULED, storing the value in scheduledAt
-- [ ] Saving a post as SCHEDULED requires a future scheduledAt value (validation)
-- [ ] Public post queries include scheduled posts whose scheduledAt is in the past: (status = PUBLISHED) OR (status = SCHEDULED AND scheduledAt <= now)
-- [ ] Scheduled posts with future scheduledAt are excluded from all public pages and APIs
-- [ ] Admin post list shows SCHEDULED status and scheduledAt date for scheduled posts
-- [ ] Pin/unpin toggle on admin post list and post editor
-- [ ] Home page query orders pinned posts first, then by publishedAt descending
-- [ ] API test: create scheduled post with future date → not returned in public post list
-- [ ] API test: create scheduled post with past date → returned in public post list
-- [ ] API test: pin a post → home page returns it before non-pinned posts
-- [ ] API test: unpin a post → home page returns it in normal chronological order
-- [ ] API test: schedule validation → reject if scheduledAt is in the past or missing when status is SCHEDULED
+- [x] Post editor gains a date/time picker when status is set to SCHEDULED, storing the value in scheduledAt
+- [x] Saving a post as SCHEDULED requires a future scheduledAt value (validation)
+- [x] Public post queries include scheduled posts whose scheduledAt is in the past: (status = PUBLISHED) OR (status = SCHEDULED AND scheduledAt <= now)
+- [x] Scheduled posts with future scheduledAt are excluded from all public pages and APIs
+- [x] Admin post list shows SCHEDULED status and scheduledAt date for scheduled posts
+- [x] Pin/unpin toggle on admin post list and post editor
+- [x] Home page query orders pinned posts first, then by publishedAt descending
+- [x] API test: create scheduled post with future date -> not returned in public post list
+- [x] API test: create scheduled post with past date -> returned in public post list
+- [x] API test: pin a post -> home page returns it before non-pinned posts
+- [x] API test: unpin a post -> home page returns it in normal chronological order
+- [x] API test: schedule validation -> reject if scheduledAt is in the past or missing when status is SCHEDULED
+
+## Comments
+
+Completed in feat/07-scheduling-pinning and merged to integration/whois-blog-platform.
