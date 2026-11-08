@@ -24,6 +24,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  posts    Post[]
 }
 
 model Account {
@@ -60,4 +61,40 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts Post[]
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  content     String    @default("")
+  coverImage  String?
+  status      String    @default("DRAFT") // DRAFT | SCHEDULED | PUBLISHED
+  isPinned    Boolean   @default(false)
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  metaTitle   String?
+  metaDescription String?
+  ogImage     String?
+  viewCount   Int       @default(0)
+  readingTime Int       @default(1)
+  authorId    String?
+  author      User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
