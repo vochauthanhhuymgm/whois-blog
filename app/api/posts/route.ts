@@ -75,6 +75,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
+    if (status === "SCHEDULED") {
+      if (!scheduledAt) {
+        return NextResponse.json(
+          { error: "scheduledAt is required when status is SCHEDULED" },
+          { status: 400 }
+        );
+      }
+      const scheduledDate = new Date(scheduledAt);
+      if (isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
+        return NextResponse.json(
+          { error: "scheduledAt must be a future date/time" },
+          { status: 400 }
+        );
+      }
+    }
+
     const trimmedTitle = title.trim();
     const slug = await generateUniqueSlug(trimmedTitle, async (candidate) => {
       const match = await prisma.post.findUnique({

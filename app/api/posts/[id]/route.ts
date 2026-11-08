@@ -58,6 +58,25 @@ export async function PUT(
       ogImage,
     } = body;
 
+    const newStatus = status !== undefined ? status : existing.status;
+
+    if (newStatus === "SCHEDULED") {
+      const dateVal = scheduledAt !== undefined ? scheduledAt : existing.scheduledAt;
+      if (!dateVal) {
+        return NextResponse.json(
+          { error: "scheduledAt is required when status is SCHEDULED" },
+          { status: 400 }
+        );
+      }
+      const scheduledDate = new Date(dateVal);
+      if (isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
+        return NextResponse.json(
+          { error: "scheduledAt must be a future date/time" },
+          { status: 400 }
+        );
+      }
+    }
+
     const updateData: any = {};
 
     if (title && typeof title === "string" && title.trim()) {

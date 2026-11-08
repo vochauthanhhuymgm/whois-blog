@@ -5,15 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { TiptapEditor } from "@/components/editor/tiptap-editor";
-import { Upload, ArrowLeft } from "lucide-react";
+import { Upload, ArrowLeft, Pin } from "lucide-react";
 import Link from "next/link";
 
 interface Category {
@@ -29,6 +22,8 @@ interface PostData {
   coverImage?: string;
   status?: string;
   categoryId?: string;
+  isPinned?: boolean;
+  scheduledAt?: string | Date;
 }
 
 export function PostForm({ initialData }: { initialData?: PostData }) {
@@ -40,6 +35,14 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
   const [excerpt, setExcerpt] = React.useState(initialData?.excerpt || "");
   const [coverImage, setCoverImage] = React.useState(initialData?.coverImage || "");
   const [categoryId, setCategoryId] = React.useState(initialData?.categoryId || "");
+  const [isPinned, setIsPinned] = React.useState(initialData?.isPinned || false);
+  const [status, setStatus] = React.useState(initialData?.status || "DRAFT");
+  const [scheduledAt, setScheduledAt] = React.useState(
+    initialData?.scheduledAt
+      ? new Date(initialData.scheduledAt).toISOString().slice(0, 16)
+      : ""
+  );
+
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -77,10 +80,22 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
     }
   }
 
-  async function handleSubmit(statusToSet: "DRAFT" | "PUBLISHED") {
+  async function handleSubmit(statusToSet: "DRAFT" | "PUBLISHED" | "SCHEDULED") {
     if (!title.trim()) {
       setError("Please provide a title");
       return;
+    }
+
+    if (statusToSet === "SCHEDULED") {
+      if (!scheduledAt) {
+        setError("Please choose a future date/time for scheduled publishing");
+        return;
+      }
+      const schedDate = new Date(scheduledAt);
+      if (isNaN(schedDate.getTime()) || schedDate.getTime() <= Date.now()) {
+        setError("Scheduled date must be in the future");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -92,7 +107,9 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
       excerpt: excerpt.trim() || undefined,
       coverImage: coverImage.trim() || undefined,
       categoryId: categoryId || undefined,
+      isPinned,
       status: statusToSet,
+      scheduledAt: statusToSet === "SCHEDULED" ? new Date(scheduledAt).toISOString() : undefined,
     };
 
     try {
@@ -137,13 +154,24 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
           >
             Save Draft
           </Button>
-          <Button
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => handleSubmit("PUBLISHED")}
-          >
-            {isEditing ? "Save & Publish" : "Publish"}
-          </Button>
+
+          {status === "SCHEDULED" ? (
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("SCHEDULED")}
+            >
+              Save Schedule
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("PUBLISHED")}
+            >
+              {isEditing ? "Save & Publish" : "Publish Now"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -168,7 +196,7 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <select
@@ -187,31 +215,75 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="coverImage">Cover Image URL</Label>
-            <div className="flex gap-2">
-              <Input
-                id="coverImage"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                placeholder="https://... or upload"
-              />
+            <Label htmlFor="statusChoice">Status</Label>
+            <select
+              id="statusChoice"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="SCHEDULED">Scheduled</option>
+            </select>
+          </div>
+
+          <div className="space-y-2 flex flex-col justify-end">
+            <label className="flex items-center gap-2 text-sm font-medium h-10 cursor-pointer">
               <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleCoverUpload}
-                accept="image/*"
-                className="hidden"
+                type="checkbox"
+                checked={isPinned}
+                onChange={(e) => setIsPinned(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => fileInputRef.current?.click()}
-                title="Upload cover image"
-              >
-                <Upload className="h-4 w-4" />
-              </Button>
-            </div>
+              <span className="flex items-center gap-1">
+                <Pin className="h-4 w-4" /> Pin post to top of feed
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {status === "SCHEDULED" && (
+          <div className="p-4 border rounded-md bg-muted/30 space-y-2 animate-in fade-in">
+            <Label htmlFor="scheduledAt">Publish Date and Time</Label>
+            <Input
+              id="scheduledAt"
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              className="max-w-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              This post will become automatically visible to readers after this date.
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="coverImage">Cover Image URL</Label>
+          <div className="flex gap-2">
+            <Input
+              id="coverImage"
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              placeholder="https://... or upload"
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleCoverUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload cover image"
+            >
+              <Upload className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
