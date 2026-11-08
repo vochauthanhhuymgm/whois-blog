@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { PublicHeader } from "@/components/public-header";
 import { PublicFooter } from "@/components/public-footer";
 import { TableOfContents } from "@/components/table-of-contents";
+import { CommentSection } from "@/components/comment-section";
 import { PostCard } from "@/components/post-card";
 import { injectHeadingIds } from "@/lib/heading-utils";
 import Link from "next/link";
@@ -263,6 +264,8 @@ export default async function PostDetailPage({ params }: PostPageProps) {
             </div>
           </section>
         )}
+        {/* Comments Section */}
+        <CommentSection postId={post.id} postSlug={post.slug} />
       </main>
 
       <PublicFooter />

@@ -3,8 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSession, signOut } from "next-auth/react";
 
 interface Category {
   id: string;
@@ -15,13 +16,18 @@ interface Category {
 export function PublicHeader() {
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { data: session } = useSession();
 
   React.useEffect(() => {
     fetch("/api/categories")
       .then((res) => res.json())
-      .then((data) => setCategories(data))
+      .then((data) => {
+        if (Array.isArray(data)) setCategories(data);
+      })
       .catch((err) => console.error("Header categories fetch failed:", err));
   }, []);
+
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -59,11 +65,51 @@ export function PublicHeader() {
             </Link>
           </Button>
           <ThemeToggle />
-          <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex text-xs">
-            <Link href="/admin">
-              Admin
-            </Link>
-          </Button>
+
+          {/* User Auth State */}
+          {session?.user ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted/60 text-xs">
+                {session.user.image ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name || "User"}
+                    className="h-6 w-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-6 w-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
+                    {session.user.name ? session.user.name[0] : <UserIcon className="h-3 w-3" />}
+                  </div>
+                )}
+                <span className="hidden sm:inline font-medium max-w-[120px] truncate">
+                  {session.user.name || session.user.email}
+                </span>
+              </div>
+
+              {isAdmin && (
+                <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex text-xs">
+                  <Link href="/admin">Admin</Link>
+                </Button>
+              )}
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                title="Sign out"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button variant="default" size="sm" asChild className="text-xs">
+                <Link href="/auth/signin">Sign In</Link>
+              </Button>
+            </div>
+          )}
 
           {/* Mobile hamburger menu button */}
           <Button
@@ -113,13 +159,37 @@ export function PublicHeader() {
             >
               About
             </Link>
-            <Link
-              href="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="hover:text-primary font-semibold text-primary pt-2 border-t"
-            >
-              Admin Dashboard
-            </Link>
+
+            {session?.user ? (
+              <div className="pt-2 border-t space-y-2">
+                <div className="flex items-center gap-2 py-1 text-xs text-muted-foreground">
+                  <span>Signed in as <strong className="text-foreground">{session.user.name || session.user.email}</strong></span>
+                </div>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-primary font-semibold"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="block text-left text-sm text-destructive hover:underline pt-1"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/auth/signin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="hover:text-primary font-semibold text-primary pt-2 border-t"
+              >
+                Sign In
+              </Link>
+            )}
           </nav>
         </div>
       )}
