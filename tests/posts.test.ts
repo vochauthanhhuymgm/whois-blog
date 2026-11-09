@@ -114,6 +114,83 @@ describe("Post Editor & Management API", () => {
     expect(updated.slug).toBe("updated-brand-new-title");
   });
 
+  async function putPost(id: string, body: Record<string, unknown>) {
+    const req = new NextRequest(`http://localhost:3000/api/posts/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+    return updatePost(req, { params: { id } });
+  }
+
+  it("keeps the slug of a published post when its title changes", async () => {
+    const post = await prisma.post.create({
+      data: {
+        title: "Live Title",
+        slug: "live-title",
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+        authorId: adminId,
+      },
+    });
+
+    const res = await putPost(post.id, { title: "Renamed Live Title" });
+    const updated = await res.json();
+    expect(updated.title).toBe("Renamed Live Title");
+    expect(updated.slug).toBe("live-title");
+  });
+
+  it("keeps the slug of a scheduled post that has gone live", async () => {
+    const post = await prisma.post.create({
+      data: {
+        title: "Went Live",
+        slug: "went-live",
+        status: "SCHEDULED",
+        scheduledAt: new Date(Date.now() - 60_000),
+        authorId: adminId,
+      },
+    });
+
+    // Editing a live scheduled post must not be rejected as "schedule in the past".
+    const res = await putPost(post.id, { title: "Went Live Renamed" });
+    expect(res.status).toBe(200);
+    expect((await res.json()).slug).toBe("went-live");
+  });
+
+  it("applies an explicit slug, normalised and made unique", async () => {
+    await prisma.post.create({
+      data: { title: "Taken", slug: "custom-url", authorId: adminId },
+    });
+    const post = await prisma.post.create({
+      data: { title: "Mine", slug: "mine", status: "PUBLISHED", publishedAt: new Date(), authorId: adminId },
+    });
+
+    const res = await putPost(post.id, { slug: "Custom URL" });
+    expect(res.status).toBe(200);
+    expect((await res.json()).slug).toBe("custom-url-2");
+
+    // Re-sending the same requested slug is stable and does not bump the suffix.
+    const again = await putPost(post.id, { slug: "custom-url" });
+    expect((await again.json()).slug).toBe("custom-url-2");
+  });
+
+  it("rejects a slug with no letters or numbers", async () => {
+    const post = await prisma.post.create({
+      data: { title: "Slug Check", slug: "slug-check", authorId: adminId },
+    });
+    const res = await putPost(post.id, { slug: "!!!" });
+    expect(res.status).toBe(400);
+  });
+
+  it("uses a requested slug when creating a post", async () => {
+    const req = new NextRequest("http://localhost:3000/api/posts", {
+      method: "POST",
+      body: JSON.stringify({ title: "Some Title", slug: "my-own-url" }),
+    });
+    const res = await createPost(req);
+    expect(res.status).toBe(201);
+    expect((await res.json()).slug).toBe("my-own-url");
+  });
+
   it("deletes a post and verifies it is removed", async () => {
     const post = await prisma.post.create({
       data: {

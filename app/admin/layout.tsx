@@ -26,7 +26,7 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-card flex flex-col justify-between p-4">
+      <aside className="sticky top-0 h-screen w-64 shrink-0 overflow-y-auto border-r bg-card flex flex-col justify-between p-4">
         <div>
           <div className="flex items-center justify-between px-2 py-4 mb-4 border-b">
             <Link href="/admin" className="text-xl font-bold tracking-tight">
@@ -58,7 +58,8 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">{children}</main>
+      {/* The window scrolls (no overflow here), so `sticky` children such as the editor bars work. */}
+      <main className="flex-1 min-w-0 p-8">{children}</main>
     </div>
   );
 }

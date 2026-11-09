@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PostForm } from "@/components/post-form";
 
@@ -24,26 +25,25 @@ export default function EditPostPage() {
   }, [id]);
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground p-4">Loading post...</p>;
-  }
-
-  if (error || !post) {
     return (
-      <div role="alert" className="p-4 text-sm text-destructive">
-        {error || "Post not found"}
+      <div className="mx-auto max-w-6xl space-y-4" aria-busy="true" aria-label="Loading post">
+        <div className="h-10 w-2/3 animate-pulse rounded bg-muted" />
+        <div className="h-10 w-full animate-pulse rounded bg-muted" />
+        <div className="h-64 w-full animate-pulse rounded bg-muted" />
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Edit Post</h1>
-        <p className="text-muted-foreground mt-1">
-          Make updates to &ldquo;{post.title}&rdquo;
-        </p>
+  if (error || !post) {
+    return (
+      <div role="alert" className="mx-auto max-w-6xl space-y-3 text-sm">
+        <p className="text-destructive">{error || "Post not found"}</p>
+        <Link href="/admin/posts" className="underline underline-offset-2">
+          Back to posts
+        </Link>
       </div>
-      <PostForm initialData={post} />
-    </div>
-  );
+    );
+  }
+
+  return <PostForm initialData={post} />;
 }

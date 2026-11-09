@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
-import { generateUniqueSlug } from "@/lib/slug";
+import { generateSlug, generateUniqueSlug } from "@/lib/slug";
 import { calculateReadingTime } from "@/lib/reading-time";
 
 export async function GET(req: NextRequest) {
@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       title,
+      slug: requestedSlug,
       content = "",
       excerpt,
       coverImage,
@@ -92,7 +93,9 @@ export async function POST(req: NextRequest) {
     }
 
     const trimmedTitle = title.trim();
-    const slug = await generateUniqueSlug(trimmedTitle, async (candidate) => {
+    const slugSource =
+      typeof requestedSlug === "string" && generateSlug(requestedSlug) ? requestedSlug : trimmedTitle;
+    const slug = await generateUniqueSlug(slugSource, async (candidate) => {
       const match = await prisma.post.findUnique({
         where: { slug: candidate },
       });

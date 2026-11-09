@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "whois-blog-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "-p", "3100"],
+      "port": 3100,
+      "env": {
+        "NEXTAUTH_URL": "http://localhost:3100",
+        "AUTH_URL": "http://localhost:3100",
+        "AUTH_TRUST_HOST": "true"
+      }
+    }
+  ]
+}

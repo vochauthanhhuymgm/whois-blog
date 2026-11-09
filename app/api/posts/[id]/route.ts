@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guard";
-import { generateUniqueSlug } from "@/lib/slug";
+import { generateSlug, generateUniqueSlug } from "@/lib/slug";
 import { calculateReadingTime } from "@/lib/reading-time";
+import { hasBeenPublic } from "@/lib/post-status";
 
 export async function GET(
   _req: NextRequest,
@@ -46,6 +47,7 @@ export async function PUT(
     const body = await req.json();
     const {
       title,
+      slug,
       content,
       excerpt,
       coverImage,
@@ -69,7 +71,12 @@ export async function PUT(
         );
       }
       const scheduledDate = new Date(dateVal);
-      if (isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
+      // Only a new or changed schedule must be in the future; editing a scheduled post
+      // whose time has already passed (it is live) must still be allowed.
+      const scheduleChanged =
+        existing.status !== "SCHEDULED" ||
+        existing.scheduledAt?.getTime() !== scheduledDate.getTime();
+      if (isNaN(scheduledDate.getTime()) || (scheduleChanged && scheduledDate.getTime() <= Date.now())) {
         return NextResponse.json(
           { error: "scheduledAt must be a future date/time" },
           { status: 400 }
@@ -78,18 +85,32 @@ export async function PUT(
     }
 
     const updateData: any = {};
+    const slugTakenByOtherPost = async (candidate: string) => {
+      const match = await prisma.post.findUnique({ where: { slug: candidate } });
+      return !!match && match.id !== params.id;
+    };
 
     if (title && typeof title === "string" && title.trim()) {
-      const trimmedTitle = title.trim();
-      updateData.title = trimmedTitle;
-      if (trimmedTitle !== existing.title) {
-        updateData.slug = await generateUniqueSlug(trimmedTitle, async (candidate) => {
-          const match = await prisma.post.findUnique({
-            where: { slug: candidate },
-          });
-          return !!match && match.id !== params.id;
-        });
+      updateData.title = title.trim();
+    }
+
+    if (typeof slug === "string" && slug.trim()) {
+      // Explicit slug from the editor (auto-derived from the title or typed by the admin).
+      if (!generateSlug(slug)) {
+        return NextResponse.json(
+          { error: "URL slug must contain letters or numbers" },
+          { status: 400 }
+        );
       }
+      const nextSlug = await generateUniqueSlug(slug, slugTakenByOtherPost);
+      if (nextSlug !== existing.slug) updateData.slug = nextSlug;
+    } else if (
+      updateData.title &&
+      updateData.title !== existing.title &&
+      !hasBeenPublic(existing)
+    ) {
+      // Drafts follow their title; once a post has been public its URL stays stable.
+      updateData.slug = await generateUniqueSlug(updateData.title, slugTakenByOtherPost);
     }
 
     if (content !== undefined) {
