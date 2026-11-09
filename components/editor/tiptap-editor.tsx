@@ -7,12 +7,12 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Button } from "@/components/ui/button";
+import { demoteH1 } from "@/lib/heading-utils";
 import {
   Bold,
   Italic,
   Strikethrough,
   Code,
-  Heading1,
   Heading2,
   Heading3,
   List,
@@ -40,8 +40,9 @@ export function TiptapEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
+        // The post title is the page's h1, so the body starts at h2.
         heading: {
-          levels: [1, 2, 3],
+          levels: [2, 3],
         },
       }),
       Image.configure({
@@ -55,7 +56,8 @@ export function TiptapEditor({
         placeholder,
       }),
     ],
-    content,
+    // Older posts may contain h1; keep them as headings rather than letting Tiptap drop them to paragraphs.
+    content: demoteH1(content),
     editorProps: {
       attributes: {
         class:
@@ -69,8 +71,9 @@ export function TiptapEditor({
 
   // Keep content in sync if initial content changes (e.g. edit page load)
   React.useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content, { emitUpdate: false });
+    const normalized = demoteH1(content);
+    if (editor && normalized !== editor.getHTML()) {
+      editor.commands.setContent(normalized, { emitUpdate: false });
     }
   }, [content, editor]);
 
@@ -167,21 +170,11 @@ export function TiptapEditor({
 
         <Button
           type="button"
-          variant={editor.isActive("heading", { level: 1 }) ? "secondary" : "ghost"}
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          title="Heading 1"
-        >
-          <Heading1 className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
           variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"}
           size="icon"
           className="h-8 w-8"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          title="Heading 2"
+          title="Heading"
         >
           <Heading2 className="h-4 w-4" />
         </Button>
@@ -191,7 +184,7 @@ export function TiptapEditor({
           size="icon"
           className="h-8 w-8"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          title="Heading 3"
+          title="Subheading"
         >
           <Heading3 className="h-4 w-4" />
         </Button>

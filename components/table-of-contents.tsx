@@ -1,37 +1,10 @@
 "use client";
 
 import * as React from "react";
-
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
-}
-
-export function parseHeadings(htmlContent: string): TocItem[] {
-  if (!htmlContent) return [];
-  const headingRegex = /<h([23])[^>]*>(.*?)<\/h\1>/gi;
-  const items: TocItem[] = [];
-  let match;
-
-  while ((match = headingRegex.exec(htmlContent)) !== null) {
-    const level = parseInt(match[1], 10);
-    // Strip any nested tags inside heading
-    const text = match[2].replace(/<[^>]*>/g, "").trim();
-    if (text) {
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-      items.push({ id, text, level });
-    }
-  }
-
-  return items;
-}
+import { extractHeadings } from "@/lib/heading-utils";
 
 export function TableOfContents({ htmlContent }: { htmlContent: string }) {
-  const headings = React.useMemo(() => parseHeadings(htmlContent), [htmlContent]);
+  const headings = React.useMemo(() => extractHeadings(htmlContent), [htmlContent]);
   const [activeId, setActiveId] = React.useState<string>("");
 
   React.useEffect(() => {
@@ -64,9 +37,9 @@ export function TableOfContents({ htmlContent }: { htmlContent: string }) {
         Table of Contents
       </h3>
       <ul className="space-y-1.5">
-        {headings.map((heading, i) => (
+        {headings.map((heading) => (
           <li
-            key={i}
+            key={heading.id}
             className={`${heading.level === 3 ? "pl-4 text-xs" : "font-medium"}`}
           >
             <a
@@ -76,6 +49,7 @@ export function TableOfContents({ htmlContent }: { htmlContent: string }) {
                 const el = document.getElementById(heading.id);
                 if (el) {
                   el.scrollIntoView({ behavior: "smooth" });
+                  history.replaceState(null, "", `#${heading.id}`);
                   setActiveId(heading.id);
                 }
               }}

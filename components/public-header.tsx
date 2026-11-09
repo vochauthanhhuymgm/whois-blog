@@ -126,7 +126,7 @@ export function PublicHeader() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b bg-background px-6 py-4 space-y-4 animate-in slide-in-from-top-2">
+        <div className="md:hidden border-b bg-background px-6 py-4 space-y-4 motion-safe:animate-slide-down">
           <nav className="flex flex-col space-y-3 text-sm font-medium">
             <Link
               href="/"

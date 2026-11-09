@@ -205,7 +205,7 @@ export default async function PostDetailPage({ params }: PostPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-4">
             <div className="lg:col-span-3">
               <div
-                className="prose prose-lg prose-stone dark:prose-invert max-w-none font-serif leading-relaxed"
+                className="prose prose-lg prose-stone dark:prose-invert max-w-[68ch] font-serif prose-headings:scroll-mt-24"
                 dangerouslySetInnerHTML={{ __html: contentWithHeadingIds }}
               />
             </div>

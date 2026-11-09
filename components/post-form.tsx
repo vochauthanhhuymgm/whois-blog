@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TiptapEditor } from "@/components/editor/tiptap-editor";
+import { toDateTimeLocalValue } from "@/lib/datetime";
 import { Upload, ArrowLeft, Pin, Globe, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 
@@ -41,9 +42,7 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
   const [isPinned, setIsPinned] = React.useState(initialData?.isPinned || false);
   const [status, setStatus] = React.useState(initialData?.status || "DRAFT");
   const [scheduledAt, setScheduledAt] = React.useState(
-    initialData?.scheduledAt
-      ? new Date(initialData.scheduledAt).toISOString().slice(0, 16)
-      : ""
+    initialData?.scheduledAt ? toDateTimeLocalValue(initialData.scheduledAt) : ""
   );
 
   // SEO fields
@@ -288,7 +287,7 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
         </div>
 
         {status === "SCHEDULED" && (
-          <div className="p-4 border rounded-md bg-muted/30 space-y-2 animate-in fade-in">
+          <div className="p-4 border rounded-md bg-muted/30 space-y-2 motion-safe:animate-fade-in">
             <Label htmlFor="scheduledAt">Publish Date and Time</Label>
             <Input
               id="scheduledAt"
@@ -367,7 +366,7 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
           </button>
 
           {showSeo && (
-            <div className="pt-3 border-t space-y-4 animate-in fade-in">
+            <div className="pt-3 border-t space-y-4 motion-safe:animate-fade-in">
               <div className="space-y-1">
                 <Label htmlFor="metaTitle">Custom Meta Title</Label>
                 <Input
