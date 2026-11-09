@@ -179,47 +179,43 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
     }
   }
 
-  const renderActionButtons = () => (
-    <div className="flex items-center gap-3">
-      <Button
-        type="button"
-        variant="outline"
-        disabled={isSubmitting}
-        onClick={() => handleSubmit("DRAFT")}
-      >
-        Save Draft
-      </Button>
-
-      {status === "SCHEDULED" ? (
-        <Button
-          type="button"
-          disabled={isSubmitting}
-          onClick={() => handleSubmit("SCHEDULED")}
-        >
-          {isSubmitting ? "Scheduling..." : "Schedule Post"}
-        </Button>
-      ) : (
-        <Button
-          type="button"
-          disabled={isSubmitting}
-          onClick={() => handleSubmit("PUBLISHED")}
-        >
-          {isSubmitting ? "Publishing..." : isEditing ? "Update & Publish" : "Publish Now"}
-        </Button>
-      )}
-    </div>
-  );
-
   return (
-    <div className="space-y-6 w-full max-w-5xl">
-      <div className="flex items-center justify-between pb-2 border-b">
+    <div className="space-y-6 max-w-4xl">
+      <div className="flex items-center justify-between">
         <Link
           href="/admin/posts"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4 mr-1.5" /> Back to posts
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back to posts
         </Link>
-        {renderActionButtons()}
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={() => handleSubmit("DRAFT")}
+          >
+            Save Draft
+          </Button>
+
+          {status === "SCHEDULED" ? (
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("SCHEDULED")}
+            >
+              {isSubmitting ? "Scheduling..." : "Schedule Post"}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("PUBLISHED")}
+            >
+              {isSubmitting ? "Publishing..." : isEditing ? "Update & Publish" : "Publish Now"}
+            </Button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -244,8 +240,7 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
           />
         </div>
 
-        {/* Category & Status Choice */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <select
@@ -269,28 +264,27 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
               id="statusChoice"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="DRAFT">Draft</option>
               <option value="PUBLISHED">Published</option>
               <option value="SCHEDULED">Scheduled</option>
             </select>
           </div>
-        </div>
 
-        {/* Pinned Checkbox */}
-        <div className="flex items-center gap-2 pt-1">
-          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isPinned}
-              onChange={(e) => setIsPinned(e.target.checked)}
-              className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
-            />
-            <span className="flex items-center gap-1.5 text-foreground/90">
-              <Pin className="h-4 w-4 text-primary" /> Pin post to top of feed
-            </span>
-          </label>
+          <div className="space-y-2 flex flex-col justify-end">
+            <label className="flex items-center gap-2 text-sm font-medium h-10 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isPinned}
+                onChange={(e) => setIsPinned(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
+              />
+              <span className="flex items-center gap-1">
+                <Pin className="h-4 w-4" /> Pin post to top of feed
+              </span>
+            </label>
+          </div>
         </div>
 
         {status === "SCHEDULED" && (
@@ -359,7 +353,7 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
         </div>
 
         {/* Collapsible SEO Settings Section */}
-        <div className="rounded-lg border bg-card p-4 space-y-4 shadow-xs">
+        <div className="rounded-lg border bg-card p-4 space-y-4">
           <button
             type="button"
             onClick={() => setShowSeo(!showSeo)}
@@ -443,17 +437,6 @@ export function PostForm({ initialData }: { initialData?: PostData }) {
             onChange={setContent}
             placeholder="Write your article story here..."
           />
-        </div>
-
-        {/* Bottom Actions Bar */}
-        <div className="flex items-center justify-between pt-6 border-t">
-          <Link
-            href="/admin/posts"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1.5" /> Back to posts
-          </Link>
-          {renderActionButtons()}
         </div>
       </div>
     </div>
