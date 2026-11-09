@@ -74,3 +74,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Tiptap editor placeholder styles */
+.tiptap p.is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground));
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap {
+  min-height: 250px;
+}
