@@ -15,22 +15,53 @@ export class MinIOStorageAdapter implements StorageAdapter {
   private bucketInitialized: boolean = false;
 
   constructor() {
-    this.endpoint = process.env.MINIO_ENDPOINT || "http://localhost:9000";
-    this.bucket = process.env.MINIO_BUCKET || "whois-blog-media";
+    this.endpoint =
+      process.env.S3_ENDPOINT ||
+      process.env.MINIO_ENDPOINT ||
+      "http://localhost:9000";
+
+    this.bucket =
+      process.env.S3_BUCKET ||
+      process.env.MINIO_BUCKET ||
+      "whois-blog-media";
+
+    const accessKeyId =
+      process.env.S3_ACCESS_KEY_ID ||
+      process.env.MINIO_ACCESS_KEY ||
+      "minioadmin";
+
+    const secretAccessKey =
+      process.env.S3_SECRET_ACCESS_KEY ||
+      process.env.MINIO_SECRET_KEY ||
+      "minioadmin";
+
+    const region =
+      process.env.S3_REGION ||
+      (this.endpoint.includes("r2.cloudflarestorage.com") ? "auto" : "us-east-1");
+
+    const forcePathStyle =
+      process.env.S3_FORCE_PATH_STYLE !== undefined
+        ? process.env.S3_FORCE_PATH_STYLE === "true"
+        : true;
 
     this.client = new S3Client({
       endpoint: this.endpoint,
-      region: "us-east-1",
+      region,
       credentials: {
-        accessKeyId: process.env.MINIO_ACCESS_KEY || "minioadmin",
-        secretAccessKey: process.env.MINIO_SECRET_KEY || "minioadmin",
+        accessKeyId,
+        secretAccessKey,
       },
-      forcePathStyle: true,
+      forcePathStyle,
     });
   }
 
   async ensureBucket(): Promise<void> {
     if (this.bucketInitialized) return;
+
+    if (process.env.STORAGE_SKIP_ENSURE_BUCKET === "true") {
+      this.bucketInitialized = true;
+      return;
+    }
 
     try {
       await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }));
@@ -63,8 +94,14 @@ export class MinIOStorageAdapter implements StorageAdapter {
           );
           this.bucketInitialized = true;
         } catch (createErr) {
-          console.warn("Could not create MinIO bucket:", createErr);
+          // Cloud storage (e.g. Cloudflare R2) does not support PutBucketPolicy via API
+          // Buckets are managed via dashboard, so we catch gracefully
+          console.warn("Could not auto-create or configure bucket policy (expected for Cloudflare R2 / Cloud S3):", createErr);
+          this.bucketInitialized = true;
         }
+      } else {
+        // In case of 403 or permission boundary on HeadBucket, continue anyway
+        this.bucketInitialized = true;
       }
     }
   }
@@ -102,6 +139,10 @@ export class MinIOStorageAdapter implements StorageAdapter {
   }
 
   getUrl(key: string): string {
+    const publicUrl = process.env.S3_PUBLIC_URL || process.env.MEDIA_PUBLIC_URL;
+    if (publicUrl) {
+      return `${publicUrl.replace(/\/$/, "")}/${key}`;
+    }
     return `${this.endpoint}/${this.bucket}/${key}`;
   }
 }
